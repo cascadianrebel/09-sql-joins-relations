@@ -6,11 +6,12 @@ const express = require('express');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-const conString = '';
+const conString = 'postgres://postgres:soccer25@localhost:5432/postgres';
+
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', error => {
-  console.error(error);
+  console.error('reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', error);
 });
 
 app.use(express.json());
@@ -24,45 +25,61 @@ app.get('/new', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response) => {
-  client.query(``)
+  client.query('SELECT * FROM articles INNER JOIN authors ON articles.author_id = authors.author_id')
     .then(result => {
       response.send(result.rows);
     })
     .catch(err => {
-      console.error(err)
+      console.error('53213423432541235213532153215321',err)
     });
 });
 
 app.post('/articles', (request, response) => {
   client.query(
-    '',
-    [],
+    `INSERT INTO
+    authors(author, "authorUrl")
+    VALUES($1, $2)
+    ON CONFLICT DO NOTHING;
+    `,
+    [
+      request.body.author,
+      request.body.authorUrl,
+    ],
     function(err) {
-      if (err) console.error(err);
+      if (err) console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', err);
       // REVIEW: This is our second query, to be executed when this first query is complete.
       queryTwo();
     }
-  )
+  );
 
   function queryTwo() {
     client.query(
-      ``,
-      [],
+      `SELECT author_id FROM authors WHERE author = $1;
+      `,
+      [request.body.author]
+      ,
       function(err, result) {
-        if (err) console.error(err);
+        if (err) console.error('2222222222222222222222222222', err);
 
         // REVIEW: This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query.
         queryThree(result.rows[0].author_id);
-      }
-    )
-  }
+      })}
 
   function queryThree(author_id) {
     client.query(
-      ``,
-      [],
+      `INSERT INTO articles(title, "publishedOn", body, category, author_id)
+      VALUES($1, $2, $3, $4, $5)
+      ON CONFLICT DO NOTHING;
+      `,
+      [
+        request.body.title,
+        request.body.publishedOn,
+        request.body.body,
+        request.body.category,
+        author_id
+      ],
       function(err) {
-        if (err) console.error(err);
+        if (err) console.error('1111111111111111111111111111111111',err);
         response.send('insert complete');
       }
     );
@@ -148,7 +165,7 @@ function loadArticles() {
             FROM authors
             WHERE author=$5;
             `,
-              [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
+            [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
             )
           })
         })
