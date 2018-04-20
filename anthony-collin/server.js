@@ -88,20 +88,34 @@ app.post('/articles', (request, response) => {
 
 app.put('/articles/:id', function(request, response) {
   client.query(
-    ``,
-    []
+    `UPDATE authors
+    VALUES (author, authorUrl, author)
+    WHERE author_id = $3;`,
+    [
+      request.body.author,
+      request.body.authurUrl,
+      request.body.author_id
+    ]
   )
     .then(() => {
       client.query(
-        ``,
-        []
+        `UPDATE articles
+        VALUES (title, body, publishedOn, category)
+        WHERE article_id = $5;`,
+        [
+          request.body.title,
+          request.body.body,
+          request.body.publishedOn,
+          request.body.category,
+          request.body.article_id,
+        ]
       )
     })
     .then(() => {
       response.send('Update complete');
     })
     .catch(err => {
-      console.error(err);
+      console.error('reeeeeeeeee',err);
     })
 });
 
